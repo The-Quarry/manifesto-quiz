@@ -106,6 +106,9 @@ with st.form("quiz_form"):
 reverse_scores = {"Agree": 1, "Neutral": 0, "Disagree": -1}
 
 if submitted:
+    if not selected_topics:
+        st.warning("Please select at least one topic to see candidate matches.")
+
     st.header("Candidate Matches")
     candidate_scores = {}
     label_to_weight = {
@@ -151,12 +154,18 @@ if submitted:
     for name, score in sorted_matches[:10]:
         st.markdown(f"<h3><strong>{name}</strong>: {score}% match</h3>", unsafe_allow_html=True)
         with st.expander("View supporting quotes"):
-            quotes = data[(data["name"] == name) & (data["quote"].notna()) & (data["policy_statement"].isin(filtered_statements))]
+            if "filtered_statements" in locals() and filtered_statements:
+                quotes = data[
+                    (data["name"] == name) &
+                    (data["quote"].notna()) &
+                    (data["policy_statement"].isin(filtered_statements))
+                ]
+            else:
+                quotes = pd.DataFrame()
             for _, row in quotes.iterrows():
                 if row["quote"]:
                     color = next((c for t, c in topic_colors.items() if row['policy_statement'] in topic_blocks[t]), "#000")
                     st.markdown(f"<span style='color:{color}; font-weight:bold'>{row['policy_statement']}</span><br><blockquote>{row['quote']}</blockquote>", unsafe_allow_html=True)
-    
 
 
     
